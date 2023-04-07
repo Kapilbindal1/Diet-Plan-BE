@@ -1,6 +1,26 @@
 const mongoose = require('mongoose');
 
 const dietPlannerSchema = new mongoose.Schema({
+  userId: {
+    type: String, 
+    required: true
+  },
+  age: {
+    type: Number,
+    required: false
+  },
+  bmi: {
+    type: Number,
+    required: false
+  },
+  weight: {
+    type: Number,
+    required: false
+  },
+  height: {
+    type: Number,
+    required: false
+  },
   dietaryPreference: {
     type: String,
     required: true
@@ -10,10 +30,6 @@ const dietPlannerSchema = new mongoose.Schema({
     required: true
   },
   cookingMethods: {
-    type: String,
-    required: true
-  },
-  dietPlan: {
     type: String,
     required: true
   },
