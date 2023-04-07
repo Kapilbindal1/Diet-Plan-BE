@@ -2,22 +2,22 @@ require("dotenv").config();
 require("./config/database").connect();
 const express = require("express");
 const passport = require("passport");
-const expressSession = require("express-session");
+const session = require("express-session");
 require("./passport");
+const isLoggedIn = require("./middleware/auth");
 
 const app = express();
 
 app.use(
-  expressSession({
+  session({
     secret: "keyboard not cat",
     resave: false,
     saveUninitialized: true,
-    cookie: {
-      name: "google-auth-session",
-      keys: ["key1", "key2"],
-    },
   })
 );
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get("/", (req, res) => {
   res.status(200).send('<button><a href="/auth" >Login With Google</a>');
@@ -30,11 +30,17 @@ app.get(
 
 app.get(
   "/auth/callback",
-  passport.authenticate("google", {
-    successRedirect: "/auth/callback/success",
-    failureRedirect: "/auth/callback/failure",
-  })
+  passport.authenticate("google", { failureRedirect: "/login"}),
+  (req, res) => {
+    res.redirect('/auth/callback/success');
+  }
 );
+
+
+app.get('/profile', isLoggedIn, (req, res) => {
+  res.send(`Hello ${req.user.displayName}`);
+})
+
 
 app.get("/auth/callback/success", (req, res) => {
   if (!req.user) {
@@ -44,9 +50,9 @@ app.get("/auth/callback/success", (req, res) => {
   res.send("Welcome " );
 });
 
-app.get("/auth/callback/failure", (req, res) => {
-  res.send("Error");
-});
+// app.get("/auth/callback/failure", (req, res) => {
+//   res.send("Error");
+// });
 
 // Logic goes here
 
