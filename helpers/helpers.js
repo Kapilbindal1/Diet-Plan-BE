@@ -19,6 +19,7 @@ async function generateResponsesFromOpenAI(prompt) {
     });
     return response;
   } catch (err) {
+    console.log(err, "err");
     return err;
   }
 }
