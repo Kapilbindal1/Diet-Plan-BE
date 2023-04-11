@@ -47,8 +47,8 @@ async function generaterMealPlans(dietPlan) {
   try {
     const sanitized = createPrompt(dietPlan);
     const prompt =
-      "Return Seven days including breakfast, morning snacks, lunch, evening snacks and dinner per day plan without ingredients and cooking instructions as a JSON object created using my preferences." +
-      sanitized;
+      // "Return Seven days including breakfast, morning snacks, lunch, evening snacks and dinner per day plan without ingredients and cooking instructions as a JSON object created using my preferences." +
+      "Return 1 day detailed breakfast, morning snacks, lunch, evening snacks and dinner diet plan with ingredients, cooking instructions, nutritional values and cooking time as a JSON object created using my preferences " + sanitized;
     const response = await generateResponsesFromOpenAI(prompt);
 
     // Log the raw response for debugging
