@@ -142,6 +142,19 @@ async function generateListOfIngredients(meal) {
   }
 }
 
+const convertObjectIntoString = (data) => {
+  let finalStr = "";
+  const keysArr = Object.keys(data);
+  for (let i = 0; i < keysArr.length; i++) {
+    finalStr += keysArr[i] + " \n\n";
+    const arr = Object.keys(data[keysArr[i]]);
+    for (let j = 0; j < arr.length; j++) {
+      finalStr += arr[j] + ": " + data[keysArr[i]][arr[j]] + " \n\n";
+    }
+  }
+  return finalStr;
+};
+
 async function generatePdf(dietPlan) {
   // console.log(dietPlan, "generate pdf");
   
@@ -156,7 +169,10 @@ async function generatePdf(dietPlan) {
       .text("Your Personalised Diet plan built using Innow8 Diet Planner!")
       .lineGap(1)
       .fontSize(16)
-      .text(JSON.stringify(dietPlan))
+      .text(`${convertObjectIntoString(dietPlan)}`, 30, 180, {
+        width: 500,
+        align: "center",
+      })
       .end();
 
     stream.on("data", (chunk) => {
