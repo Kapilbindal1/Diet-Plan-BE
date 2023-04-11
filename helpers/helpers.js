@@ -16,7 +16,7 @@ async function generateResponsesFromOpenAI(prompt) {
       model: "text-davinci-003",
       prompt,
       temperature: 0.05,
-      max_tokens: 600,
+      max_tokens: 700,
       frequency_penalty: 0,
       presence_penalty: 0,
     });
