@@ -6,7 +6,7 @@ const { Base64Encode } = require("base64-stream");
 async function generateResponsesFromOpenAI(prompt) {
   const { OPENAI_API_KEY } = process.env;
   const configuration = new Configuration({
-    apiKey: OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY,
   });
 
   const openai = new OpenAIApi(configuration);
@@ -16,7 +16,7 @@ async function generateResponsesFromOpenAI(prompt) {
       model: "text-davinci-003",
       prompt,
       temperature: 0.05,
-      max_tokens: 600,
+      max_tokens: 500,
       frequency_penalty: 0,
       presence_penalty: 0,
     });
@@ -45,16 +45,16 @@ async function generaterMealPlans(dietPlan) {
   try {
     const sanitized = createPrompt(dietPlan);
     const prompt =
-      // "Return Seven days including breakfast, morning snacks, lunch, evening snacks and dinner per day plan without ingredients and cooking instructions as a JSON object created using my preferences." +
-      "Return 1 day detailed breakfast, morning snacks, lunch, evening snacks and dinner diet plan with ingredients, cooking instructions, nutritional values and cooking time as a JSON object created using my preferences " + sanitized;
+      // "Return  breakfast, morning snacks, lunch, evening snacks and dinner meal plan without ingredients and cooking instructions as a JSON object created using my preferences." + sanitized
+    "Return breakfast, morning snacks, lunch, evening snacks and dinner with nutritional details and total calories per meal plan as a JSON object created using my preferences."
+    +  sanitized;
     const response = await generateResponsesFromOpenAI(prompt);
-
+   console.log(response.data.choices[0].text, "promtp response");
     // Log the raw response for debugging
-    console.log("Raw response:", response.data.choices[0].text);
 
     const formattedData = formatData(response.data.choices[0].text);
-    console.log(formattedData, "formatted data");
-
+    
+    // console.log(formattedData, "formattteddata");
     // Remove consecutive colons from the response
     // const formattedResponse = removeConsecutiveColons(
     //   response.data.choices[0].text
@@ -64,11 +64,10 @@ async function generaterMealPlans(dietPlan) {
     // const trimmedResponse = formattedResponse.slice(2).trim();
 
     // Log the formatted response for debugging
-    // console.log("Formatted response:", trimmedResponse);
-    const trimmedResponse = formattedData;
 
     // Return the trimmed response
-    return trimmedResponse;
+    // return response.data.choices[0].text;
+    return formattedData
   } catch (err) {
     throw err;
   }
@@ -76,7 +75,6 @@ async function generaterMealPlans(dietPlan) {
 
 async function generateRecipe(meal) {
   try {
-    console.log(meal);
     const sanitized = meal;
     const prompt =
       "Return Instructions for a Recipe as a JSON object created using given meal." +
@@ -84,10 +82,8 @@ async function generateRecipe(meal) {
     const response = await generateResponsesFromOpenAI(prompt);
 
     // Log the raw response for debugging
-    console.log("Raw response:", response.data.choices[0].text);
 
     const formattedData = formatData(response.data.choices[0].text);
-    console.log(formattedData, "formatted data");
 
     // Remove consecutive colons from the response
     // const formattedResponse = removeConsecutiveColons(
@@ -98,7 +94,6 @@ async function generateRecipe(meal) {
     // const trimmedResponse = formattedResponse.slice(2).trim();
 
     // Log the formatted response for debugging
-    // console.log("Formatted response:", trimmedResponse);
     const trimmedResponse = formattedData;
 
     // Return the trimmed response
@@ -110,7 +105,6 @@ async function generateRecipe(meal) {
 
 async function generateListOfIngredients(meal) {
   try {
-    // console.log(meal);
     const sanitized = meal;
     const prompt =
       "Return a list of Ingredients  as a JSON object created using given meal." +
@@ -118,10 +112,8 @@ async function generateListOfIngredients(meal) {
     const response = await generateResponsesFromOpenAI(prompt);
 
     // Log the raw response for debugging
-    console.log("Raw response:", response.data.choices[0].text);
 
     const formattedData = formatData(response.data.choices[0].text);
-    console.log(formattedData, "formatted data");
 
     // Remove consecutive colons from the response
     // const formattedResponse = removeConsecutiveColons(
@@ -132,7 +124,6 @@ async function generateListOfIngredients(meal) {
     // const trimmedResponse = formattedResponse.slice(2).trim();
 
     // Log the formatted response for debugging
-    // console.log("Formatted response:", trimmedResponse);
     const trimmedResponse = formattedData;
 
     // Return the trimmed response
@@ -142,8 +133,20 @@ async function generateListOfIngredients(meal) {
   }
 }
 
+const convertObjectIntoString = (data) => {
+  let finalStr = "";
+  const keysArr = Object.keys(data);
+  for (let i = 0; i < keysArr.length; i++) {
+    finalStr += keysArr[i] + " \n ";
+    const arr = Object.keys(data[keysArr[i]]);
+    for (let j = 0; j < arr.length; j++) {
+      finalStr += arr[j] + ": " + data[keysArr[i]][arr[j]] + " \n";
+    }
+  }
+  return finalStr;
+};
+
 async function generatePdf(dietPlan) {
-  // console.log(dietPlan, "generate pdf");
   
 
   return new Promise((resolve, reject) => {
@@ -156,7 +159,10 @@ async function generatePdf(dietPlan) {
       .text("Your Personalised Diet plan built using Innow8 Diet Planner!")
       .lineGap(1)
       .fontSize(16)
-      .text(JSON.stringify(dietPlan))
+      .text(`${convertObjectIntoString(dietPlan)}`, 30, 180, {
+        width: 500,
+        align: "center",
+      })
       .end();
 
     stream.on("data", (chunk) => {
@@ -180,8 +186,6 @@ async function sendEmail(dietPlan, userEmailAddress) {
   );
 
   const pdfContent = await generatePdf(dietPlan)
-
-  console.log(pdfContent, "pdfContent");
 
   return new Promise((resolve, reject) => {
     const result = mailjet.post("send", { version: "v3.1" }).request({

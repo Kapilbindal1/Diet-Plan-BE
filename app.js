@@ -43,7 +43,6 @@ app.get("/generate-mealPlans/:userId", async (req, res) => {
 
     delete preferences["_id"];
 
-    console.log(dietPlan, "diet plans");
     try {
       const recipe = await generaterMealPlans({dietPlan});
       res.status(200).json(recipe);
