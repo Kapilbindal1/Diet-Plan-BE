@@ -10,7 +10,7 @@ const bodyParser = require("body-parser");
 // const isLoggedIn = require("./middleware/auth");
 // const User = require("./model/user.model");
 const DietPlanner = require("./model/diet.planner.model");
-const { generaterMealPlans, generateRecipe, generateListOfIngredients } = require("./helpers/helpers");
+const { generaterMealPlans, generateRecipe, generateListOfIngredients, sendEmail, generatePdf } = require("./helpers/helpers");
 
 const app = express();
 
@@ -102,7 +102,43 @@ app.post("/generate-a-list-of-ingredients", jsonParser, async (req, res) => {
   }
 });
 
+app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
+  try {
+    // const { userId } = req.body;
+    // const dietPlan = await DietPlanner.findOne({ userId: userId });
 
+    // if (!dietPlan) {
+    //   return res.status(400).send("User preferences does not exist");
+    // }
+
+    const { dietPlan, userEmailAddress } = req.body;
+  
+    try {
+      const response = await sendEmail(dietPlan, userEmailAddress);
+      res.status(200).send(response);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+app.post("/generate-pdf", jsonParser, async (req, res) => {
+  try {
+
+    const { dietPlan } = req.body;
+  
+    try {
+      const response = await generatePdf(dietPlan);
+      res.status(200).send(response);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 // Logic goes here
 
