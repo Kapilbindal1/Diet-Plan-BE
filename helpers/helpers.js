@@ -2,8 +2,6 @@ const { Configuration, OpenAIApi } = require("openai");
 const PDFDocument = require("pdfkit");
 const Mailjet = require("node-mailjet");
 const { Base64Encode } = require("base64-stream");
-// const json2html = require("node-json2html");
-
 
 async function generateResponsesFromOpenAI(prompt) {
   const { OPENAI_API_KEY } = process.env;
@@ -144,47 +142,35 @@ async function generateListOfIngredients(meal) {
   }
 }
 
-const convertObjectIntoString = (data) => {
-  let finalStr = "";
-  const keysArr = Object.keys(data);
-  for (let i = 0; i < keysArr.length; i++) {
-    finalStr += keysArr[i] + " \n ";
-    const arr = Object.keys(data[keysArr[i]]);
-    for (let j = 0; j < arr.length; j++) {
-      finalStr += arr[j] + ": " + data[keysArr[i]][arr[j]] + " \n";
-    }
-  }
-  return finalStr;
-};
-
 async function generatePdf(dietPlan) {
+  // console.log(dietPlan, "generate pdf");
+  
+
   return new Promise((resolve, reject) => {
     console.time("pdf");
     const doc = new PDFDocument();
     const stream = doc.pipe(new Base64Encode());
     let finalString = "";
-
     doc
       .fontSize(24)
       .text("Your Personalised Diet plan built using Innow8 Diet Planner!")
       .lineGap(1)
       .fontSize(16)
-      .text(`${convertObjectIntoString(dietPlan)}`, 30, 180, {
-        width: 500,
-        align: "center",
-      })
+      .text(JSON.stringify(dietPlan))
       .end();
 
     stream.on("data", (chunk) => {
       finalString += chunk;
     });
+
     stream.on("end", () => {
       resolve(finalString);
     });
+
     stream.on("error", (err) => {
       reject(err);
-    });
-  });
+    })
+  })
 }
 
 async function sendEmail(dietPlan, userEmailAddress) {
@@ -193,7 +179,9 @@ async function sendEmail(dietPlan, userEmailAddress) {
     process.env.MAIL_JET_SECRET_KEY
   );
 
-  const pdfContent = await generatePdf(dietPlan);
+  const pdfContent = await generatePdf(dietPlan)
+
+  console.log(pdfContent, "pdfContent");
 
   return new Promise((resolve, reject) => {
     const result = mailjet.post("send", { version: "v3.1" }).request({
@@ -215,8 +203,8 @@ async function sendEmail(dietPlan, userEmailAddress) {
             {
               ContentType: "application/pdf",
               FileName: "diet-plan.pdf",
-              Base64Content: pdfContent,
-            },
+              Base64Content: pdfContent
+            }
           ],
         },
       ],

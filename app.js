@@ -112,7 +112,6 @@ app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
     // }
 
     const { dietPlan, userEmailAddress } = req.body;
-
   
     try {
       const response = await sendEmail(dietPlan, userEmailAddress);
