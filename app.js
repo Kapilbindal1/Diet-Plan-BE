@@ -103,17 +103,18 @@ app.post("/generate-a-list-of-ingredients", jsonParser, async (req, res) => {
 
 app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
   try {
-    // const { userId } = req.body;
-    // const dietPlan = await DietPlanner.findOne({ userId: userId });
+    const dietPlanExist = await DietPlanner.findOne({ userId: userId });
 
-    // if (!dietPlan) {
-    //   return res.status(400).send("User preferences does not exist");
-    // }
+    if (!dietPlanExist) {
+      return res.status(400).send("User preferences does not exist");
+    }
 
-    const { dietPlan, userEmailAddress } = req.body;
+    const { dietPlan, userEmailAddress, userId } = req.body;
   
     try {
       const response = await sendEmail(dietPlan, userEmailAddress);
+      dietPlanExist.userEmailAddress = userEmailAddress;
+      await dietPlanExist.update();
       res.status(200).send(response);
     } catch (err) {
       res.status(500).send(err.message);
