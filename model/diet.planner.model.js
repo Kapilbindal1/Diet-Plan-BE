@@ -40,6 +40,10 @@ const dietPlannerSchema = new mongoose.Schema({
   medicalHistory: {
     type: String,
     required: true
+  },
+  userEmailAddress: {
+    type: String,
+    required: false
   }
 });
 
