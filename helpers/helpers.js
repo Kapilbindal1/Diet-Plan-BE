@@ -46,14 +46,14 @@ async function generaterMealPlans(dietPlan) {
     const sanitized = createPrompt(dietPlan);
     const prompt =
       // "Return  breakfast, morning snacks, lunch, evening snacks and dinner meal plan without ingredients and cooking instructions as a JSON object created using my preferences." + sanitized
-    'create a diet plan with breakfast, morning snacks, lunch, evening snacks and dinner with nutritional value details and total calories per meal and give substitute resources for proteins, fats and carbs Write in a valid JSON format with the following keys "dietPlan", "breakfast", "lunch", "morning_snack", "evening_snack" and "dinner". also for nutrition values in key value format make sure value is string.'
-    +  sanitized;
+      'create a diet plan with breakfast, morning snacks, lunch, evening snacks and dinner with nutritional value details and total calories per meal and give substitute resources for proteins, fats and carbs Write in a valid JSON format with the following keys "dietPlan", "breakfast", "lunch", "morning_snack", "evening_snack" and "dinner". also for nutrition values in key value format make sure value is string.' +
+      sanitized;
     const response = await generateResponsesFromOpenAI(prompt);
-   console.log(response.data.choices[0].text, "promtp response");
+    console.log(response.data.choices[0].text, "promtp response");
     // Log the raw response for debugging
 
     const formattedData = formatData(response.data.choices[0].text);
-    
+
     // console.log(formattedData, "formattteddata");
     // Remove consecutive colons from the response
     // const formattedResponse = removeConsecutiveColons(
@@ -67,7 +67,7 @@ async function generaterMealPlans(dietPlan) {
 
     // Return the trimmed response
     // return response.data.choices[0].text;
-    return formattedData
+    return formattedData;
   } catch (err) {
     throw err;
   }
@@ -133,22 +133,26 @@ async function generateListOfIngredients(meal) {
   }
 }
 
-const convertObjectIntoString = (data) => {
-  let finalStr = "";
-  const keysArr = Object.keys(data);
-  for (let i = 0; i < keysArr.length; i++) {
-    finalStr += keysArr[i] + " \n ";
-    const arr = Object.keys(data[keysArr[i]]);
-    for (let j = 0; j < arr.length; j++) {
-      finalStr += arr[j] + ": " + data[keysArr[i]][arr[j]] + " \n";
+
+const textFormatting = (str) =>
+  str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase();
+
+function convertObjectIntoString(obj) {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+      // Recursively convert nested object to string and add key name
+      acc += `${
+        key === "nutrition" ? "Macronutrients Breakup" : textFormatting(key).replace("_"," ") 
+      }: ${convertObjectIntoString(value)} \n`;
+    } else {
+      // Convert non-object values to string and add key name
+      acc += `${key === "meal" ? "Dish Name" : textFormatting(key).replace("_"," ") }: ${value} \n `;
     }
-  }
-  return finalStr;
-};
+    return acc;
+  }, "\n");
+}
 
 async function generatePdf(dietPlan) {
-  
-
   return new Promise((resolve, reject) => {
     console.time("pdf");
     const doc = new PDFDocument();
@@ -175,8 +179,8 @@ async function generatePdf(dietPlan) {
 
     stream.on("error", (err) => {
       reject(err);
-    })
-  })
+    });
+  });
 }
 
 async function sendEmail(dietPlan, userEmailAddress) {
@@ -207,8 +211,8 @@ async function sendEmail(dietPlan, userEmailAddress) {
             {
               ContentType: "application/pdf",
               FileName: "diet-plan.pdf",
-              Base64Content: pdfContent
-            }
+              Base64Content: pdfContent,
+            },
           ],
         },
       ],
@@ -231,4 +235,3 @@ module.exports = {
   generatePdf,
 };
 
-// prompt: "Return Six days including breakfast, lunch, evening snacks and dinner per day plan without ingredients and cooking instructions as a JSON object created using my preferences." + prompt,

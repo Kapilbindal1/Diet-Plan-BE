@@ -58,12 +58,6 @@ app.get("/generate-mealPlans/:userId", async (req, res) => {
 // convert into POST before use !!! IMPORTANT !!!
 app.post("/generate-recipe", jsonParser, async (req, res) => {
   try {
-    // const { userId } = req.body;
-    // const dietPlan = await DietPlanner.findOne({ userId: userId });
-
-    // if (!dietPlan) {
-    //   return res.status(400).send("User preferences does not exist");
-    // }
 
     const {meal} = req.body;
 
@@ -81,13 +75,6 @@ app.post("/generate-recipe", jsonParser, async (req, res) => {
 // convert into POST before use !!! IMPORTANT !!!
 app.post("/generate-a-list-of-ingredients", jsonParser, async (req, res) => {
   try {
-    // const { userId } = req.body;
-    // const dietPlan = await DietPlanner.findOne({ userId: userId });
-
-    // if (!dietPlan) {
-    //   return res.status(400).send("User preferences does not exist");
-    // }
-
     const { meal } = req.body;
 
     try {
@@ -105,16 +92,16 @@ app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
   try {
     const { dietPlan, userEmailAddress, userId } = req.body;
 
-    const dietPlanExist = await DietPlanner.findOne({ userId: userId });
+    const dietPlanExist = await DietPlanner.findById(userId);
 
     if (!dietPlanExist) {
-      return res.status(400).send("User preferences does not exist");
+      return res.status(404).send("User preferences does not exist");
     }
   
     try {
       const response = await sendEmail(dietPlan, userEmailAddress);
       dietPlanExist.userEmailAddress = userEmailAddress;
-      await dietPlanExist.update();
+      await dietPlanExist.updateOne(dietPlanExist);
       res.status(200).send(response);
     } catch (err) {
       res.status(500).send(err.message);
