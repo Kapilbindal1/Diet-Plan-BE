@@ -46,7 +46,7 @@ async function generaterMealPlans(dietPlan) {
     const sanitized = createPrompt(dietPlan);
     const prompt =
       // "Return  breakfast, morning snacks, lunch, evening snacks and dinner meal plan without ingredients and cooking instructions as a JSON object created using my preferences." + sanitized
-    "Return breakfast, morning snacks, lunch, evening snacks and dinner with nutritional details and total calories per meal plan as a JSON object created using my preferences."
+    'create a diet plan with breakfast, morning snacks, lunch, evening snacks and dinner with nutritional value details and total calories per meal and give substitute resources for proteins, fats and carbs Write in a valid JSON format with the following keys "dietPlan", "breakfast", "lunch", "morning_snack", "evening_snack" and "dinner". also for nutrition values in key value format make sure value is string.'
     +  sanitized;
     const response = await generateResponsesFromOpenAI(prompt);
    console.log(response.data.choices[0].text, "promtp response");
@@ -185,7 +185,7 @@ async function sendEmail(dietPlan, userEmailAddress) {
     process.env.MAIL_JET_SECRET_KEY
   );
 
-  const pdfContent = await generatePdf(dietPlan)
+  const pdfContent = await generatePdf(dietPlan);
 
   return new Promise((resolve, reject) => {
     const result = mailjet.post("send", { version: "v3.1" }).request({
