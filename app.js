@@ -103,13 +103,13 @@ app.post("/generate-a-list-of-ingredients", jsonParser, async (req, res) => {
 
 app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
   try {
+    const { dietPlan, userEmailAddress, userId } = req.body;
+
     const dietPlanExist = await DietPlanner.findOne({ userId: userId });
 
     if (!dietPlanExist) {
       return res.status(400).send("User preferences does not exist");
     }
-
-    const { dietPlan, userEmailAddress, userId } = req.body;
   
     try {
       const response = await sendEmail(dietPlan, userEmailAddress);
