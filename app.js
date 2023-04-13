@@ -8,9 +8,15 @@ const bodyParser = require("body-parser");
 // require("./passport");
 
 // const isLoggedIn = require("./middleware/auth");
-// const User = require("./model/user.model");
+const User = require("./model/user.model");
 const DietPlanner = require("./model/diet.planner.model");
-const { generaterMealPlans, generateRecipe, generateListOfIngredients, sendEmail, generatePdf } = require("./helpers/helpers");
+const {
+  generaterMealPlans,
+  generateRecipe,
+  generateListOfIngredients,
+  sendEmail,
+  generatePdf,
+} = require("./helpers/helpers");
 
 const app = express();
 
@@ -18,9 +24,9 @@ app.use(cors());
 
 const jsonParser = bodyParser.json();
 
-app.get("/keep-alive", async(req, res) => {
+app.get("/keep-alive", async (req, res) => {
   res.status(200).send("Alive");
-})
+});
 
 app.post("/user-inputs", jsonParser, async (req, res) => {
   try {
@@ -32,22 +38,21 @@ app.post("/user-inputs", jsonParser, async (req, res) => {
   }
 });
 
-
 app.get("/generate-mealPlans/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    
-    const  dietPlan = await DietPlanner.findById(userId);
+
+    const dietPlan = await DietPlanner.findById(userId);
     if (!dietPlan) {
       return res.status(400).send("User preferences does not exist");
     }
 
-    let preferences = ({...dietPlan}._doc);
+    let preferences = { ...dietPlan }._doc;
 
     delete preferences["_id"];
 
     try {
-      const recipe = await generaterMealPlans({dietPlan});
+      const recipe = await generaterMealPlans({ dietPlan });
       res.status(200).json(recipe);
     } catch (err) {
       res.status(500).send(err.message);
@@ -57,12 +62,10 @@ app.get("/generate-mealPlans/:userId", async (req, res) => {
   }
 });
 
-
 // convert into POST before use !!! IMPORTANT !!!
 app.post("/generate-recipe", jsonParser, async (req, res) => {
   try {
-
-    const {meal} = req.body;
+    const { meal } = req.body;
 
     try {
       const recipe = await generateRecipe(meal);
@@ -96,15 +99,19 @@ app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
     const { dietPlan, userEmailAddress, userId } = req.body;
 
     const dietPlanExist = await DietPlanner.findById(userId);
+    const userExist = await User.findOne({ email: userEmailAddress });
 
     if (!dietPlanExist) {
       return res.status(404).send("User preferences does not exist");
     }
-  
+
     try {
       const response = await sendEmail(dietPlan, userEmailAddress);
       dietPlanExist.userEmailAddress = userEmailAddress;
       await dietPlanExist.updateOne(dietPlanExist);
+
+      !userExist && (await User.create({ email: userEmailAddress }));
+
       res.status(200).send(response);
     } catch (err) {
       res.status(500).send(err.message);
@@ -116,9 +123,8 @@ app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
 
 app.post("/generate-pdf", jsonParser, async (req, res) => {
   try {
-
     const { dietPlan } = req.body;
-  
+
     try {
       const response = await generatePdf(dietPlan);
       res.status(200).send(response);
