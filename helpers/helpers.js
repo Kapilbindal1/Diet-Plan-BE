@@ -63,7 +63,7 @@ async function generateRecipe(meal) {
   try {
     const sanitized = meal;
     const prompt =
-      "Return Instructions for a Recipe as a JSON object created using given meal." +
+      'Return Instructions for a Recipe using given meal following JSON format make sure every key & value are a javascript string. { "name" : value, "ingredients": [value], "instructions": [ 1. value ] }' +
       sanitized;
     const response = await generateResponsesFromOpenAI(prompt);
 
