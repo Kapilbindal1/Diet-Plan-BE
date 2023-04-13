@@ -18,10 +18,13 @@ app.use(cors());
 
 const jsonParser = bodyParser.json();
 
+app.get("/keep-alive", async(req, res) => {
+  res.status(200).send("Alive");
+})
+
 app.post("/user-inputs", jsonParser, async (req, res) => {
   try {
     const userInputs = req.body;
-   
     const dietPlan = await DietPlanner.create({ ...userInputs });
     res.status(200).json(dietPlan);
   } catch (err) {
