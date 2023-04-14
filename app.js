@@ -24,7 +24,7 @@ app.use(cors());
 
 const jsonParser = bodyParser.json();
 
-app.get("/keep-alive", async (req, res) => {
+app.get("/test", async (req, res) => {
   res.status(200).send("Alive");
 });
 
@@ -104,11 +104,13 @@ app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
     }
 
     try {
-      const response = await sendEmail(dietPlan, userEmailAddress);
+      const response = await sendEmail(dietPlan, userEmailAddress,dietPlanExist.name);
       dietPlanExist.userEmailAddress = userEmailAddress;
       await dietPlanExist.updateOne(dietPlanExist);
-
+      
       !userExist && (await User.create({ email: userEmailAddress, name: dietPlanExist.name }));
+
+      console.log("response", response)
 
       res.status(200).send(response);
     } catch (err) {

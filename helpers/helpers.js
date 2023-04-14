@@ -2,18 +2,8 @@ const { Configuration, OpenAIApi } = require("openai");
 const Mailjet = require("node-mailjet");
 const puppeteer = require("puppeteer");
 const fs = require('fs');
+const { htmlTemplate } = require("./htmlTemplateGenerator");
 
-const htmlTemplate = `
-<html>
-  <head>
-    <title>PDF Document</title>
-  </head>
-  <body>
-    <h1>Dynamic Data:</h1>
-    <p id="dynamicData"></p>
-  </body>
-</html>
-`;
 
 async function generateResponsesFromOpenAI(prompt) {
   const configuration = new Configuration({
@@ -60,7 +50,6 @@ async function generaterMealPlans(dietPlan) {
       // 'create a diet plan with breakfast, morning snacks, lunch, evening snacks and dinner with nutritional value details and total calories per meal and give substitute resources for proteins, fats and carbs Write in a valid JSON format with the following keys "dietPlan", "breakfast", "lunch", "morning_snack", "evening_snack" and "dinner". also for nutrition values in "nutrition" key value format make sure value is string.' +
       'Return a diet plan using provided user preferences in following JSON format makes sure every key & value are a javascript string {"dietPlan": {"breakfast": {"meal": value, "nutrition": { "proteins": value, "fats": value, "carbs": value, "calories": value}}}, {"morning_snack": {"meal": value, "nutrition": {"proteins": value, "fats": value, "carbs": value, "calories": value}}}, {"lunch": {"meal": value, "nutrition": {"proteins": value, "fats": value, "carbs": value, "calories": value}}}, {"evening_snack": {"meal": value, "nutrition": { "proteins": value, "fats": value, "carbs": value, "calories": value}}}, {"dinner": {"meal": value, "nutrition": {"proteins": value, "fats": value, "carbs": value, "calories": value}}} } ' + sanitized;
     const response = await generateResponsesFromOpenAI(prompt);
-    console.log(response.data.choices[0].text, "promtp response");
     // Log the raw response for debugging
 
     const formattedData = formatData(response.data.choices[0].text);
@@ -149,44 +138,45 @@ function convertObjectIntoString(obj) {
   }, "\n");
 }
 
-async function generatePdf(dietPlan) {
+async function generatePdf(dietPlan,name) {
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
-  await page.setContent(htmlTemplate);
+  const htmlData = htmlTemplate({dietPlan, name});
+  await page.setContent(htmlData);
   const pdf = await page.pdf();
   await browser.close();
 
   return pdf.toString('base64');
 }
 
-async function sendEmail(dietPlan, userEmailAddress) {
+async function sendEmail(dietPlan, userEmailAddress,name) {
   const mailjet = Mailjet.apiConnect(
     process.env.MAIL_JET_API_KEY,
     process.env.MAIL_JET_SECRET_KEY
   );
 
-  const pdfBuffer = await generatePdf(dietPlan);
+  const pdfBuffer = await generatePdf(dietPlan,name);
   return new Promise((resolve, reject) => {
     const result = mailjet.post("send", { version: "v3.1" }).request({
       Messages: [
         {
           From: {
-            Email: "aidrisi@innow8apps.com",
-            Name: "Diet Planner",
+            Email: "devinnow8@gmail.com",
+            Name: "WiseBite Diet Planner by Innow8 Apps",
           },
           To: [
             {
               Email: userEmailAddress,
-              Name: "User",
+              Name: `${textFormatting(name)}`,
             },
           ],
-          Subject: "Your Diet Plan",
-          TextPart: "Dear receiver. Here's your diet plan.",
+          Subject: `${textFormatting(name)}'s Custom Diet Plan`,
+          TextPart: `Dear ${textFormatting(name)}. Here's your diet plan.`,
           Attachments: [
             {
               ContentType: 'application/pdf',
-              Filename: 'document.pdf',
+              Filename: `${textFormatting(name)}'s-Diet-Plan.pdf`,
               Base64Content: pdfBuffer,
             },
           ],
