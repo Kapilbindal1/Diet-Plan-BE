@@ -157,7 +157,7 @@ async function generatePdf(dietPlan) {
   const pdf = await page.pdf();
   await browser.close();
 
-  return pdf;
+  return pdf.toString('base64');
 }
 
 async function sendEmail(dietPlan, userEmailAddress) {
@@ -173,7 +173,7 @@ async function sendEmail(dietPlan, userEmailAddress) {
         {
           From: {
             Email: "aidrisi@innow8apps.com",
-            Name: "Innow8",
+            Name: "Diet Planner",
           },
           To: [
             {
@@ -187,7 +187,7 @@ async function sendEmail(dietPlan, userEmailAddress) {
             {
               ContentType: 'application/pdf',
               Filename: 'document.pdf',
-              Base64Content: pdfBuffer.toString('base64'),
+              Base64Content: pdfBuffer,
             },
           ],
         },
