@@ -1,10 +1,21 @@
 const { Configuration, OpenAIApi } = require("openai");
-const PDFDocument = require("pdfkit");
 const Mailjet = require("node-mailjet");
-const { Base64Encode } = require("base64-stream");
+const puppeteer = require("puppeteer");
+const fs = require('fs');
+
+const htmlTemplate = `
+<html>
+  <head>
+    <title>PDF Document</title>
+  </head>
+  <body>
+    <h1>Dynamic Data:</h1>
+    <p id="dynamicData"></p>
+  </body>
+</html>
+`;
 
 async function generateResponsesFromOpenAI(prompt) {
-  const { OPENAI_API_KEY } = process.env;
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
   });
@@ -139,33 +150,14 @@ function convertObjectIntoString(obj) {
 }
 
 async function generatePdf(dietPlan) {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument();
-    const stream = doc.pipe(new Base64Encode());
-    let finalString = "";
-    doc
-      .fontSize(24)
-      .text("Your Personalised Diet plan built using Innow8 Diet Planner!")
-      .lineGap(1)
-      .fontSize(16)
-      .text(`${convertObjectIntoString(dietPlan)}`, 30, 180, {
-        width: 500,
-        align: "center",
-      })
-      .end();
 
-    stream.on("data", (chunk) => {
-      finalString += chunk;
-    });
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(htmlTemplate);
+  const pdf = await page.pdf();
+  await browser.close();
 
-    stream.on("end", () => {
-      resolve(finalString);
-    });
-
-    stream.on("error", (err) => {
-      reject(err);
-    });
-  });
+  return pdf;
 }
 
 async function sendEmail(dietPlan, userEmailAddress) {
@@ -174,8 +166,7 @@ async function sendEmail(dietPlan, userEmailAddress) {
     process.env.MAIL_JET_SECRET_KEY
   );
 
-  const pdfContent = await generatePdf(dietPlan);
-
+  const pdfBuffer = await generatePdf(dietPlan);
   return new Promise((resolve, reject) => {
     const result = mailjet.post("send", { version: "v3.1" }).request({
       Messages: [
@@ -194,9 +185,9 @@ async function sendEmail(dietPlan, userEmailAddress) {
           TextPart: "Dear receiver. Here's your diet plan.",
           Attachments: [
             {
-              ContentType: "application/pdf",
-              FileName: "diet-plan.pdf",
-              Base64Content: pdfContent,
+              ContentType: 'application/pdf',
+              Filename: 'document.pdf',
+              Base64Content: pdfBuffer.toString('base64'),
             },
           ],
         },
@@ -207,6 +198,7 @@ async function sendEmail(dietPlan, userEmailAddress) {
         resolve(res.body);
       })
       .catch((err) => {
+        console.error(err, "<====== error");
         reject(err);
       });
   });

@@ -62,7 +62,6 @@ app.get("/generate-mealPlans/:userId", async (req, res) => {
   }
 });
 
-// convert into POST before use !!! IMPORTANT !!!
 app.post("/generate-recipe", jsonParser, async (req, res) => {
   try {
     const { meal } = req.body;
@@ -78,7 +77,6 @@ app.post("/generate-recipe", jsonParser, async (req, res) => {
   }
 });
 
-// convert into POST before use !!! IMPORTANT !!!
 app.post("/generate-a-list-of-ingredients", jsonParser, async (req, res) => {
   try {
     const { meal } = req.body;
@@ -110,7 +108,7 @@ app.post("/send-mail-with-generated-pdf", jsonParser, async (req, res) => {
       dietPlanExist.userEmailAddress = userEmailAddress;
       await dietPlanExist.updateOne(dietPlanExist);
 
-      !userExist && (await User.create({ email: userEmailAddress }));
+      !userExist && (await User.create({ email: userEmailAddress, name: dietPlanExist.name }));
 
       res.status(200).send(response);
     } catch (err) {
@@ -136,6 +134,5 @@ app.post("/generate-pdf", jsonParser, async (req, res) => {
   }
 });
 
-// Logic goes here
 
 module.exports = app;

@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const dietPlannerSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
   gender: {
     type: String,
     required: true,
