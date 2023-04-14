@@ -162,7 +162,7 @@ async function sendEmail(dietPlan, userEmailAddress,name) {
       Messages: [
         {
           From: {
-            Email: "devinnow8@gmail.com",
+            Email: "aidrisi@innow8apps.com",
             Name: "WiseBite Diet Planner by Innow8 Apps",
           },
           To: [

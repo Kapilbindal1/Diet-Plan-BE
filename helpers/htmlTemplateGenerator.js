@@ -1,6 +1,6 @@
 const textFormatting = (str) =>
   str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase();
-  
+
 function htmlTemplate({ name, dietPlan }) {
   let keyArr = Object.keys(dietPlan);
 
@@ -53,7 +53,7 @@ function htmlTemplate({ name, dietPlan }) {
                             <tbody>
                             <tr>
                                 <td style="text-align: center;">
-                                        <img src="logo-orang.svg" style="width: 150px;" alt="Diet Plan">
+                                        <img src="https://i.ibb.co/x6pJLHJ/Group-54138-1.jpg" style="width: 150px;" alt="Diet Plan">
                                 </td>
                             
                             </tr>
