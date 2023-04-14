@@ -19,6 +19,6 @@ functions:
           path: /{proxy+}
           method: ANY
           cors: true
-
+    timeout: 20
 plugins:
   - serverless-offline

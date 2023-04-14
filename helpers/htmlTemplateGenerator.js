@@ -68,7 +68,7 @@ function htmlTemplate({ name, dietPlan }) {
                         <table  width="95%" border="0" align="center" cellpadding="0" cellspacing="0" style="margin:0px 20px">
                             <tbody> 
                   <tr>
-                    <th colspan="2"><h1>${name}'s Custom Diet plan</h1></th>
+                    <th colspan="2"><h1>${textFormatting(name)}'s Custom Diet plan</h1></th>
                   </tr> 
                   <tr> 
                     ${stringArr.slice(0,2).join("")}
